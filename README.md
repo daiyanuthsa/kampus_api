@@ -99,7 +99,7 @@ DELETE /api/students/delete/{nim}
 - Deletes a student record
 - Returns success message upon completion
 
-## Response Formats
+- Response format:
 
 ### Success Response
 ```json
