@@ -43,7 +43,6 @@ GET /api/students
             "nim": "encrypted-nim",
             "name": "Student Name",
             "ukt_paid": true/false,
-            // other student fields
         }
     ]
 }
@@ -76,7 +75,6 @@ GET /api/students/{nim}
         "nim": "encrypted-nim",
         "name": "Student Name",
         "ukt_paid": true/false,
-        // other student fields
     }
 }
 ```
@@ -107,8 +105,15 @@ DELETE /api/students/delete/{nim}
 ```json
 {
     "success": true,
-    "message": "Success message",
-    "data": {} // Optional data object
+    "message": "Student deleted successfully",
+}
+```
+
+### Not Found Response
+```json
+{
+    "success": false,
+    "message": "Student not found"
 }
 ```
 
