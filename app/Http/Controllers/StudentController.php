@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Student;
+use Crypt;
 use Illuminate\Http\Request;
+use Log;
 use Response;
 
 class StudentController extends Controller
@@ -39,74 +41,105 @@ class StudentController extends Controller
             'data' => $student
         ], 200);
     }
-
     public function show($nim)
     {
-        // Cari student berdasarkan nim
-        $student = Student::where('nim', $nim)->first();
+        try {
+            Log::info('Searching for student with NIM: ' . $nim);
 
-        if (!$student) {
+            $foundStudent = Student::all()->first(function ($student) use ($nim) {
+                return $student->nim === $nim;
+            });
+
+            if (!$foundStudent) {
+                Log::warning('Student not found with NIM: ' . $nim);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Student not found'
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $foundStudent
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error in show method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Student not found'
-            ], 404);
+                'message' => 'Error processing request'
+            ], 500);
         }
-
-        // Mengembalikan data satu student
-        return response()->json([
-            'success' => true,
-            'data' => $student
-        ], 200);
     }
 
     public function update(Request $request, $nim)
     {
-        // Validasi data
-        $request->validate([
-            'name' => 'nullable|string',
-            'ukt_paid' => 'nullable|boolean',
-        ]);
+        try {
+            // Validasi data
+            $request->validate([
+                'name' => 'nullable|string',
+                'ukt_paid' => 'nullable|boolean',
+            ]);
 
-        // Cari student berdasarkan nim
-        $student = Student::where('nim', $nim)->first();
+            $foundStudent = Student::all()->first(function ($student) use ($nim) {
+                return $student->nim === $nim;
+            });
 
-        if (!$student) {
+            if (!$foundStudent) {
+                Log::warning('Student not found with NIM: ' . $nim);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Student not found'
+                ], 404);
+            }
+
+            // Update data student
+            $foundStudent->update($request->all());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Student updated successfully',
+                'data' => $foundStudent
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error in update method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Student not found'
-            ], 404);
+                'message' => $e->getMessage()
+            ], 500);
         }
-
-        // Update data student
-        $student->update($request->all());
-
-        // Mengembalikan response setelah update
-        return response()->json([
-            'success' => true,
-            'message' => 'Student updated successfully',
-            'data' => $student
-        ], 200);
     }
 
     public function destroy($nim)
     {
-        // Cari student berdasarkan nim
-        $student = Student::where('nim', $nim)->first();
+        try {
+            $foundStudent = Student::all()->first(function ($student) use ($nim) {
+                return $student->nim === $nim;
+            });
 
-        if (!$student) {
+            if (!$foundStudent) {
+                Log::warning('Student not found with NIM: ' . $nim);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Student not found'
+                ], 404);
+            }
+
+            // Hapus data student
+            $foundStudent->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Student deleted successfully'
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Error in destroy method: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Student not found'
-            ], 404);
+                'message' => 'Error processing request'
+            ], 500);
         }
-
-        // Hapus data student
-        $student->delete();
-
-        // Mengembalikan response setelah delete
-        return response()->json([
-            'success' => true,
-            'message' => 'Student deleted successfully'
-        ], 200);
     }
 }
